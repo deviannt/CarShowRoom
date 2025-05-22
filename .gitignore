@@ -1,0 +1,27 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, coverage reports
+*.test
+*.out
+
+# Output of the go coverage tool
+*.coverprofile
+
+# Logs
+*.log
+
+# IDE settings
+.idea/
+*.iml
+*.vscode/
+
+# Dependency directories (vendor/)
+vendor/
+
+# Environment files
+.env
