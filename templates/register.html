@@ -1,0 +1,84 @@
+{{ define "register.html" }}
+<h2>Регистрация</h2>
+
+<div id="alertContainer"></div>
+
+<form id="registerForm" novalidate>
+    <div class="mb-3">
+        <label for="username" class="form-label">Имя пользователя</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Пароль</label>
+        <input type="password" class="form-control" id="password" name="password" required minlength="6">
+    </div>
+    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+</form>
+
+<script>
+    const showAlert = (message, type = "danger") => {
+        const alertHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+            </div>
+        `;
+        document.getElementById("alertContainer").innerHTML = alertHTML;
+    };
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const data = {
+            username: form.username.value.trim(),
+            email: form.email.value.trim(),
+            password: form.password.value
+        };
+
+        // Простая клиентская валидация
+        if (!data.username || !data.email || !data.password) {
+            showAlert("Пожалуйста, заполните все поля.");
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(data.email)) {
+            showAlert("Введите корректный email.");
+            return;
+        }
+
+        if (data.password.length < 6) {
+            showAlert("Пароль должен содержать минимум 6 символов.");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if (res.ok && !result.error) {
+                showAlert("Регистрация прошла успешно!", "success");
+                form.reset();
+                setTimeout(() => window.location.href = "/login", 1500);
+            } else {
+                showAlert(result?.error || "Ошибка при регистрации.");
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert("Ошибка соединения с сервером.");
+        }
+    });
+</script>
+{{ end }}

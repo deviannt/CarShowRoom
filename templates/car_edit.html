@@ -1,0 +1,70 @@
+{{ define "content" }}
+<h2>Редактировать автомобиль</h2>
+
+<form id="editCarForm">
+    <div class="mb-3">
+        <label>Бренд</label>
+        <input type="text" class="form-control" name="brand" required>
+    </div>
+    <div class="mb-3">
+        <label>Модель</label>
+        <input type="text" class="form-control" name="model" required>
+    </div>
+    <div class="mb-3">
+        <label>Год</label>
+        <input type="number" class="form-control" name="year" required>
+    </div>
+    <div class="mb-3">
+        <label>Цена</label>
+        <input type="number" class="form-control" name="price" required>
+    </div>
+    <div class="mb-3">
+        <label>Описание</label>
+        <textarea class="form-control" name="description"></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Изображение (URL)</label>
+        <input type="text" class="form-control" name="image_url">
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+
+<script>
+    const carId = new URLSearchParams(window.location.search).get("id");
+
+    async function loadCar() {
+        const res = await fetch(`/api/cars/${carId}`, {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
+        const car = await res.json();
+        for (const key in car) {
+            const input = document.querySelector(`[name=${key}]`);
+            if (input) input.value = car[key];
+        }
+    }
+
+    document.getElementById("editCarForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            brand: form.brand.value,
+            model: form.model.value,
+            year: parseInt(form.year.value),
+            price: parseFloat(form.price.value),
+            description: form.description.value,
+            image_url: form.image_url.value
+        };
+        const res = await fetch(`/api/cars/${carId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": "Bearer " + localStorage.getItem("token"),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+        alert(res.ok ? "Сохранено!" : "Ошибка");
+    });
+
+    loadCar();
+</script>
+{{ end }}
