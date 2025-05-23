@@ -142,3 +142,15 @@ func ShowAdminPostsPage(c *gin.Context) {
 		"Role":            role,
 	})
 }
+
+// 🌐 Страница поддержки (общая для всех ролей)
+func ShowSupportPage(c *gin.Context) {
+	auth, username, role := getUserInfo(c)
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"Title":           "Поддержка",
+		"Content":         "support.html",
+		"IsAuthenticated": auth,
+		"Username":        username,
+		"Role":            role,
+	})
+}

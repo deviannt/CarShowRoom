@@ -38,6 +38,7 @@ func SetupRouter() *gin.Engine {
 			"Content": "car_add.html",
 		})
 	})
+	r.GET("/support", middleware.AuthMiddleware(), controllers.ShowSupportPage)
 
 	// 🔒 Админ-панели (HTML)
 	r.GET("/admin/users", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), func(c *gin.Context) {
@@ -75,6 +76,10 @@ func SetupRouter() *gin.Engine {
 
 			// 📝 Посты
 			secured.POST("/posts", controllers.CreatePost)
+
+			// 💬 Поддержка
+			secured.GET("/support", controllers.GetSupportMessages)
+			secured.POST("/support", controllers.SendSupportMessage)
 
 			// 🛠️ Админ
 			admin := secured.Group("/")

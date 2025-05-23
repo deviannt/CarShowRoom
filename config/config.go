@@ -34,7 +34,8 @@ func ConnectDB() {
 			err = DB.AutoMigrate(
 				&models.User{},
 				&models.Car{},
-				&models.Post{}, // ✅ добавлена миграция постов
+				&models.Post{},
+				&models.SupportMessage{}, // ✅ Модель сообщений поддержки
 			)
 			if err != nil {
 				log.Fatalf("❌ Ошибка миграции: %v", err)

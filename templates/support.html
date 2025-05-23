@@ -1,0 +1,57 @@
+{{ define "support.html" }}
+<div class="container mt-4">
+  <h3>Тех. поддержка</h3>
+
+  <div id="chat-box" class="border rounded p-3 mb-3" style="height: 300px; overflow-y: scroll; background: #f9f9f9;"></div>
+
+  <form id="supportForm">
+    <div class="input-group">
+      <input type="text" class="form-control" name="message" placeholder="Ваше сообщение..." required>
+      <button class="btn btn-primary" type="submit">Отправить</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  async function loadMessages() {
+    const res = await fetch("/api/support", {
+      headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+    });
+
+    const messages = await res.json();
+    const chat = document.getElementById("chat-box");
+
+    // Отображаем сообщения
+    chat.innerHTML = messages.map(m => `
+      <div>
+        <b>${m.role === 'admin' || m.role === 'superadmin' ? '👨‍💼' : '👤'} ${m.username}</b>: ${m.message}
+      </div>
+    `).join("");
+
+    // Даем время DOM обновиться, затем скроллим вниз
+    setTimeout(() => {
+      chat.scrollTop = chat.scrollHeight;
+    }, 50);
+  }
+
+  document.getElementById("supportForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = e.target.message;
+    if (!input.value.trim()) return;
+
+    await fetch("/api/support", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token"),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: input.value })
+    });
+
+    input.value = "";
+    loadMessages();
+  });
+
+  loadMessages();
+</script>
+{{ end }}
