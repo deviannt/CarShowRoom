@@ -1,17 +1,20 @@
 {{ define "cars.html" }}
-<h2 class="mb-4">Автомобили</h2>
-<form class="row mb-4" id="filterForm">
-    <div class="col-md-4">
+<h2 class="page-title">Автомобили</h2>
+
+<form class="row filter-bar mb-4" id="filterForm">
+    <div class="col-md-5 mb-2">
         <input type="text" class="form-control" placeholder="Марка или модель" name="query">
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 mb-2">
         <input type="number" class="form-control" placeholder="Макс. цена" name="max_price">
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3 mb-2">
         <button type="submit" class="btn btn-outline-primary w-100">Фильтровать</button>
     </div>
 </form>
-<div id="car-list" class="row"></div>
+
+<div id="car-list" class="row text-center text-muted">Загрузка...</div>
+
 <script>
     document.getElementById("filterForm").addEventListener("submit", function(e) {
         e.preventDefault();
@@ -27,37 +30,51 @@
         if (max) params.append("max", max);
         if ([...params].length > 0) url += `?${params.toString()}`;
 
-        const res = await fetch(url, {
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
-        });
-
-        if (!res.ok) {
-            document.getElementById('car-list').innerHTML = `<div class="col-12 text-danger">Ошибка загрузки данных</div>`;
-            return;
-        }
-
-        const cars = await res.json();
         const container = document.getElementById('car-list');
-        container.innerHTML = '';
+        container.innerHTML = '<div class="text-muted">Загрузка...</div>';
 
-        cars.forEach(car => {
-            const col = document.createElement('div');
-            col.className = 'col-md-4 mb-4';
-            col.innerHTML = `
-                <div class="card h-100">
-                    <img src="${car.image_url}" class="card-img-top" alt="${car.model}" style="height:200px; object-fit:cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">${car.brand} ${car.model}</h5>
-                        <p class="card-text">${car.description}</p>
-                        <p><strong>Год:</strong> ${car.year}</p>
-                        <p><strong>Цена:</strong> $${car.price}</p>
+        try {
+            const headers = {};
+            const token = localStorage.getItem("token");
+            if (token) {
+                headers["Authorization"] = "Bearer " + token;
+            }
+
+            const res = await fetch(url, { headers });
+
+            if (!res.ok) {
+                container.innerHTML = `<div class="text-danger">Ошибка загрузки данных</div>`;
+                return;
+            }
+
+            const cars = await res.json();
+            container.innerHTML = '';
+
+            if (cars.length === 0) {
+                container.innerHTML = '<div class="text-muted">Нет объявлений</div>';
+                return;
+            }
+
+            cars.forEach(car => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 mb-4';
+                col.innerHTML = `
+                    <div class="card car-card h-100">
+                        <img src="${car.image_url}" class="card-img-top" alt="${car.model}" style="height:200px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">${car.brand} ${car.model}</h5>
+                            <p class="card-text">${car.description}</p>
+                            <p><strong>Год:</strong> ${car.year}</p>
+                            <p><strong>Цена:</strong> $${car.price}</p>
+                        </div>
                     </div>
-                </div>
-            `;
-            container.appendChild(col);
-        });
+                `;
+                container.appendChild(col);
+            });
+        } catch (err) {
+            container.innerHTML = `<div class="text-danger">Ошибка загрузки</div>`;
+            console.error(err);
+        }
     }
 
     loadCars();
