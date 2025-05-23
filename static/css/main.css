@@ -1,10 +1,28 @@
+/* === Базовые настройки === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* === Заголовки страниц === */
+.page-title,
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 40px 0 20px;
+    color: #0077cc;
+}
+
 /* === Карточки автомобилей === */
 .card.car-card {
     background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 14px;
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.04);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
 }
 
@@ -59,14 +77,6 @@
     color: #fff;
 }
 
-/* === Заголовки страниц === */
-.page-title {
-    font-size: 2.2rem;
-    text-align: center;
-    margin: 40px 0 20px;
-    color: #0077cc;
-}
-
 /* === Фильтры/поиск === */
 .filter-bar {
     background: #f8f9fb;
@@ -92,4 +102,47 @@
 
 .filter-bar .form-control::placeholder {
     color: #999;
+}
+
+/* === Таблицы (Admin Users) === */
+.table {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.table th {
+    background-color: #0077cc;
+    color: white;
+    font-weight: 500;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table input[type="text"] {
+    padding: 6px 8px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.table select {
+    padding: 6px 8px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
+
+/* === Кнопки в таблице === */
+.table .btn {
+    margin: 2px 0;
+    font-size: 0.875rem;
+    padding: 4px 10px;
+    border-radius: 6px;
 }
