@@ -1,23 +1,27 @@
 {{ define "register.html" }}
-<h2>Регистрация</h2>
+<link rel="stylesheet" href="/static/css/auth.css">
 
-<div id="alertContainer"></div>
+<div class="auth-container">
+    <h2>Регистрация</h2>
 
-<form id="registerForm" novalidate>
-    <div class="mb-3">
-        <label for="username" class="form-label">Имя пользователя</label>
-        <input type="text" class="form-control" id="username" name="username" required>
-    </div>
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Пароль</label>
-        <input type="password" class="form-control" id="password" name="password" required minlength="6">
-    </div>
-    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
-</form>
+    <div id="alertContainer"></div>
+
+    <form id="registerForm" novalidate>
+        <div class="mb-3">
+            <label for="username" class="form-label">Имя пользователя</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    </form>
+</div>
 
 <script>
     const showAlert = (message, type = "danger") => {
@@ -40,7 +44,6 @@
             password: form.password.value
         };
 
-        // Простая клиентская валидация
         if (!data.username || !data.email || !data.password) {
             showAlert("Пожалуйста, заполните все поля.");
             return;
@@ -59,10 +62,7 @@
         try {
             const res = await fetch('/api/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 

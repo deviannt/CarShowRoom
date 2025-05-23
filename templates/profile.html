@@ -1,135 +1,158 @@
 {{ define "profile.html" }}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm rounded-4">
-            <div class="card-body p-4">
+<section class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <img id="avatar" src="" class="rounded-circle shadow-sm border border-primary" style="width: 110px; height: 110px; object-fit: cover;">
+                        <h4 id="displayUsername" class="mt-3 mb-1 fw-bold"></h4>
+                        <p id="displayRole" class="text-muted small"></p>
+                    </div>
 
-                <div class="text-center mb-4">
-                    <img id="avatar" src="" class="rounded-circle shadow-sm mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <h4 id="displayUsername" class="mb-0"></h4>
-                    <small id="displayRole" class="text-muted"></small>
+                    <!-- Аватар -->
+                    <form id="avatarForm" enctype="multipart/form-data" class="mb-4">
+                        <label class="form-label">Аватар</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" name="avatar" accept="image/*" required>
+                            <button class="btn btn-outline-primary" type="submit">Обновить</button>
+                        </div>
+                    </form>
+
+                    <!-- Основная информация -->
+                    <form id="profileForm" class="mb-4">
+                        <div class="mb-3">
+                            <label class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Смена пароля -->
+                    <h5 class="fw-semibold mb-3">Изменить пароль</h5>
+                    <form id="passwordForm" class="mb-4">
+                        <div class="mb-3">
+                            <label class="form-label">Старый пароль</label>
+                            <input type="password" class="form-control" name="old_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Новый пароль</label>
+                            <input type="password" class="form-control" name="new_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">Обновить пароль</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Опасная зона -->
+                    <div class="text-center">
+                        <h6 class="text-danger">Удаление аккаунта</h6>
+                        <button class="btn btn-outline-danger" onclick="deleteAccount()">Удалить аккаунт</button>
+                    </div>
                 </div>
-
-                <!-- 🖼️ Загрузка аватара -->
-                <form id="avatarForm" enctype="multipart/form-data" class="mb-4">
-                    <label class="form-label">Загрузить аватар</label>
-                    <input type="file" class="form-control" name="avatar" accept="image/*" required>
-                    <button class="btn btn-secondary mt-2 w-100" type="submit">Загрузить</button>
-                </form>
-
-                <form id="profileForm" class="mb-4">
-                    <div class="mb-3">
-                        <label class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Сохранить</button>
-                </form>
-
-                <hr>
-
-                <h5>Сменить пароль</h5>
-                <form id="passwordForm" class="mb-4">
-                    <div class="mb-3">
-                        <label class="form-label">Старый пароль</label>
-                        <input type="password" class="form-control" name="old_password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Новый пароль</label>
-                        <input type="password" class="form-control" name="new_password" required>
-                    </div>
-                    <button type="submit" class="btn btn-warning w-100">Сменить пароль</button>
-                </form>
-
-                <hr>
-
-                <div class="text-center">
-                    <h6 class="text-danger">Опасная зона</h6>
-                    <button class="btn btn-outline-danger btn-sm" onclick="deleteAccount()">Удалить аккаунт</button>
-                </div>
-
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
-        const res = await fetch("/api/profile", { credentials: 'include' });
-        const user = await res.json();
-
-        document.querySelector("[name=username]").value = user.username;
-        document.querySelector("[name=email]").value = user.email;
-
-        document.getElementById("displayUsername").textContent = user.username;
-        document.getElementById("displayRole").textContent = "Роль: " + user.role.toUpperCase();
-        document.getElementById("avatar").src = user.image_url || `https://ui-avatars.com/api/?name=${user.username}&background=0D8ABC&color=fff&size=80`;
-    });
-
-    document.getElementById("avatarForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const res = await fetch("/api/profile/avatar", {
-            method: "POST",
-            body: formData,
-            credentials: "include"
-        });
-        const result = await res.json();
-        if (res.ok) {
-            alert("Аватар обновлён!");
-            document.getElementById("avatar").src = result.image_url;
-        } else {
-            alert(result.error || "Ошибка загрузки аватара");
+        try {
+            const res = await fetch("/api/profile", { credentials: 'include' });
+            if (!res.ok) throw new Error("Ошибка загрузки профиля");
+            const user = await res.json();
+            document.querySelector("[name=username]").value = user.username;
+            document.querySelector("[name=email]").value = user.email;
+            document.getElementById("displayUsername").textContent = user.username;
+            document.getElementById("displayRole").textContent = "Роль: " + user.role.toUpperCase();
+            document.getElementById("avatar").src = user.image_url || `https://ui-avatars.com/api/?name=${user.username}&background=0D8ABC&color=fff&size=110`;
+        } catch {
+            alert("Не удалось загрузить данные профиля");
         }
     });
 
-    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+    document.getElementById("avatarForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        try {
+            const res = await fetch("/api/profile/avatar", {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert("Аватар обновлён!");
+                document.getElementById("avatar").src = result.image_url;
+            } else {
+                alert(result.error || "Ошибка загрузки аватара");
+            }
+        } catch {
+            alert("Ошибка загрузки аватара");
+        }
+    });
+
+    document.getElementById("profileForm").addEventListener("submit", async e => {
         e.preventDefault();
         const form = e.target;
         const data = {
-            username: form.username.value,
-            email: form.email.value
+            username: form.username.value.trim(),
+            email: form.email.value.trim()
         };
-        const res = await fetch("/api/profile", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-            credentials: 'include'
-        });
-        alert(res.ok ? "Профиль обновлён!" : "Ошибка при обновлении");
+        try {
+            const res = await fetch("/api/profile", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+                credentials: 'include'
+            });
+            alert(res.ok ? "Профиль обновлён!" : "Ошибка при обновлении");
+        } catch {
+            alert("Ошибка при отправке формы");
+        }
     });
 
-    document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+    document.getElementById("passwordForm").addEventListener("submit", async e => {
         e.preventDefault();
         const form = e.target;
         const data = {
             old_password: form.old_password.value,
             new_password: form.new_password.value
         };
-        const res = await fetch("/api/profile/password", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-            credentials: 'include'
-        });
-        alert(res.ok ? "Пароль обновлён!" : "Ошибка при смене пароля");
+        try {
+            const res = await fetch("/api/profile/password", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+                credentials: 'include'
+            });
+            alert(res.ok ? "Пароль обновлён!" : "Ошибка при смене пароля");
+        } catch {
+            alert("Ошибка при смене пароля");
+        }
     });
 
     async function deleteAccount() {
         if (!confirm("Удалить аккаунт? Это действие необратимо.")) return;
-
-        const res = await fetch("/api/profile", {
-            method: "DELETE",
-            credentials: 'include'
-        });
-        if (res.ok) {
-            alert("Аккаунт удалён");
-            window.location.href = "/register";
-        } else {
-            alert("Ошибка при удалении аккаунта");
+        try {
+            const res = await fetch("/api/profile", {
+                method: "DELETE",
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert("Аккаунт удалён");
+                window.location.href = "/register";
+            } else {
+                alert("Ошибка при удалении аккаунта");
+            }
+        } catch {
+            alert("Ошибка подключения к серверу");
         }
     }
 </script>

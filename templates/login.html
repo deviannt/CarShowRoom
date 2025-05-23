@@ -1,21 +1,34 @@
 {{ define "login.html" }}
-<h2>Вход</h2>
+<link rel="stylesheet" href="/static/css/auth.css">
 
-<div id="alertContainer"></div>
+<div class="auth-container">
+    <h2>Вход</h2>
 
-<form id="loginForm">
-    <div class="mb-3">
-        <label>Email</label>
-        <input type="email" class="form-control" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label>Пароль</label>
-        <input type="password" class="form-control" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-success">Войти</button>
-</form>
+    <div id="alertContainer"></div>
+
+    <form id="loginForm">
+        <div class="mb-3">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" name="email" id="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password">Пароль</label>
+            <input type="password" class="form-control" name="password" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-success">Войти</button>
+    </form>
+</div>
 
 <script>
+    function showAlert(message, type = "success") {
+        const alert = `
+            <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+            </div>`;
+        document.getElementById("alertContainer").innerHTML = alert;
+    }
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -30,8 +43,7 @@
                 body: JSON.stringify(data)
             });
             const result = await res.json();
-            if (res.ok) {
-                // ✅ Сохраняем токен и данные пользователя
+            if (res.ok && result.token) {
                 localStorage.setItem("token", result.token);
                 localStorage.setItem("username", result.username);
                 localStorage.setItem("role", result.role);
@@ -39,12 +51,11 @@
                 showAlert("Добро пожаловать!", "success");
                 setTimeout(() => window.location.href = "/cars", 1000);
             } else {
-                showAlert(result.error || "Ошибка авторизации");
+                showAlert(result.error || "Ошибка авторизации", "danger");
             }
         } catch (err) {
-            showAlert("Ошибка подключения к серверу");
+            showAlert("Ошибка подключения к серверу", "danger");
         }
     });
 </script>
-
 {{ end }}
