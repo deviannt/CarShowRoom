@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// получить список авто с фильтрацией
+// Получить только одобренные авто (для публичной страницы)
 func GetCars(c *gin.Context) {
 	var cars []models.Car
 	query := c.Query("q")
 	max := c.Query("max")
 
-	db := config.DB
+	db := config.DB.Where("status = ?", "approved") // Только approved
 
 	if query != "" {
 		db = db.Where("brand ILIKE ? OR model ILIKE ?", "%"+query+"%", "%"+query+"%")
@@ -23,7 +23,11 @@ func GetCars(c *gin.Context) {
 		db = db.Where("price <= ?", max)
 	}
 
-	db.Find(&cars)
+	if err := db.Find(&cars).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка загрузки машин"})
+		return
+	}
+
 	c.JSON(http.StatusOK, cars)
 }
 
@@ -38,7 +42,7 @@ func GetCar(c *gin.Context) {
 	c.JSON(http.StatusOK, car)
 }
 
-// Создать авто
+// Создать авто (всегда в статусе pending)
 func CreateCar(c *gin.Context) {
 	var input struct {
 		Brand       string  `json:"brand"`
@@ -48,7 +52,6 @@ func CreateCar(c *gin.Context) {
 		Description string  `json:"description"`
 		ImageURL    string  `json:"image_url"`
 	}
-
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные"})
 		return
@@ -75,7 +78,7 @@ func CreateCar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Объявление отправлено на модерацию"})
 }
 
-// Обновить авто
+// Обновить авто (используется админом при правке)
 func UpdateCar(c *gin.Context) {
 	id := c.Param("id")
 	var car models.Car
@@ -84,21 +87,32 @@ func UpdateCar(c *gin.Context) {
 		return
 	}
 
-	var input models.Car
+	var input struct {
+		Brand       string  `json:"brand"`
+		ModelName   string  `json:"model"`
+		Year        int     `json:"year"`
+		Price       float64 `json:"price"`
+		Description string  `json:"description"`
+		ImageURL    string  `json:"image_url"`
+	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные"})
 		return
 	}
 
 	car.Brand = input.Brand
-	car.Model = input.Model
+	car.ModelName = input.ModelName
 	car.Year = input.Year
 	car.Price = input.Price
 	car.Description = input.Description
 	car.ImageURL = input.ImageURL
 
-	config.DB.Save(&car)
-	c.JSON(http.StatusOK, car)
+	if err := config.DB.Save(&car).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка обновления"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Авто обновлено"})
 }
 
 // Удалить авто
@@ -111,14 +125,35 @@ func DeleteCar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Авто удалено"})
 }
 
+// Получить мои авто (для пользователя)
 func GetMyCars(c *gin.Context) {
 	userID := c.GetUint("userID")
-
 	var cars []models.Car
+
 	if err := config.DB.Where("user_id = ?", userID).Find(&cars).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при получении машин"})
 		return
 	}
 
 	c.JSON(http.StatusOK, cars)
+}
+
+// Список автомобилей на модерации (admin)
+func ListPendingCars(c *gin.Context) {
+	var cars []models.Car
+	if err := config.DB.Where("status = ?", "pending").Find(&cars).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при получении"})
+		return
+	}
+	c.JSON(http.StatusOK, cars)
+}
+
+// Одобрить авто (admin)
+func ApproveCar(c *gin.Context) {
+	id := c.Param("id")
+	if err := config.DB.Model(&models.Car{}).Where("id = ?", id).Update("status", "approved").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при одобрении"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Авто одобрено"})
 }

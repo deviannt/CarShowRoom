@@ -2,66 +2,125 @@
 <h2 class="mb-4">Посты на модерации</h2>
 <div id="postsContainer" class="row g-4"></div>
 
+<!-- 📝 Модальное окно редактирования -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="editForm">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать пост</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editPostId">
+                <div class="mb-3">
+                    <label class="form-label">Заголовок</label>
+                    <input type="text" class="form-control" id="editTitle" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-control" id="editDescription" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-  async function loadPosts() {
-    const res = await fetch("/api/posts", { credentials: 'include' });
-    const posts = await res.json();
+    let currentEditingPostId = null;
 
-    const container = document.getElementById("postsContainer");
-    container.innerHTML = "";
+    async function loadPosts() {
+        const res = await fetch("/api/posts", {
+            credentials: 'include',
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        });
+        const posts = await res.json();
+        const container = document.getElementById("postsContainer");
+        container.innerHTML = "";
 
-    if (posts.length === 0) {
-      container.innerHTML = '<p class="text-muted">Нет постов на модерации</p>';
-      return;
+        if (posts.length === 0) {
+            container.innerHTML = '<p class="text-muted">Нет постов на модерации</p>';
+            return;
+        }
+
+        for (const post of posts) {
+            const card = document.createElement("div");
+            card.className = "col-md-6 col-lg-4";
+            card.innerHTML = `
+        <div class="card shadow-sm h-100">
+          <img src="${post.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;">
+          <div class="card-body">
+            <h5 class="card-title">${post.title}</h5>
+            <h6 class="text-muted">Автор: ${post.author.username}</h6>
+            <p class="card-text">${post.description}</p>
+            <div class="d-flex justify-content-between">
+              <button class="btn btn-success btn-sm" onclick="approvePost(${post.id})">Одобрить</button>
+              <button class="btn btn-warning btn-sm" onclick="showEditModal(${post.id}, '${post.title}', \`${post.description.replace(/`/g, '\\`')}\`)">Редактировать</button>
+              <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">Удалить</button>
+            </div>
+          </div>
+        </div>`;
+            container.appendChild(card);
+        }
     }
 
-    for (const post of posts) {
-      const card = document.createElement("div");
-      card.className = "col-md-6 col-lg-4";
-      card.innerHTML = `
-                <div class="card shadow-sm h-100">
-                    <img src="${post.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">${post.title}</h5>
-                        <h6 class="text-muted">Автор: ${post.author}</h6>
-                        <p class="card-text">${post.description}</p>
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-success btn-sm" onclick="approvePost(${post.id})">Одобрить</button>
-                            <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">Удалить</button>
-                        </div>
-                    </div>
-                </div>`;
-      container.appendChild(card);
+    async function approvePost(id) {
+        const res = await fetch(`/api/posts/${id}/approve`, {
+            method: "PUT",
+            credentials: "include",
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        });
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadPosts();
     }
-  }
 
-  async function approvePost(id) {
-    const res = await fetch(`/api/posts/${id}/approve`, {
-      method: "PUT",
-      credentials: "include"
+    async function deletePost(id) {
+        if (!confirm("Удалить пост?")) return;
+        const res = await fetch(`/api/posts/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        });
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadPosts();
+    }
+
+    function showEditModal(id, title, description) {
+        document.getElementById("editPostId").value = id;
+        document.getElementById("editTitle").value = title;
+        document.getElementById("editDescription").value = description;
+        const modal = new bootstrap.Modal(document.getElementById("editModal"));
+        modal.show();
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("editPostId").value;
+        const data = {
+            title: document.getElementById("editTitle").value.trim(),
+            description: document.getElementById("editDescription").value.trim()
+        };
+
+        const res = await fetch(`/api/posts/${id}`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        alert(result.message || result.error);
+        bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
+        loadPosts();
     });
-    if (res.ok) {
-      alert("Пост одобрен");
-      loadPosts();
-    } else {
-      alert("Ошибка при одобрении");
-    }
-  }
 
-  async function deletePost(id) {
-    if (!confirm("Удалить пост?")) return;
-    const res = await fetch(`/api/posts/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-    if (res.ok) {
-      alert("Пост удалён");
-      loadPosts();
-    } else {
-      alert("Ошибка при удалении");
-    }
-  }
-
-  loadPosts();
+    loadPosts();
 </script>
 {{ end }}

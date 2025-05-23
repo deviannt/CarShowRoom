@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"autosalon/config"
+	"autosalon/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// ✅ Получение информации из токена
+// 🔐 Получение информации из JWT токена (из cookie)
 func getUserInfo(c *gin.Context) (bool, string, string) {
 	tokenString, err := c.Cookie("token")
 	if err != nil || tokenString == "" {
@@ -29,7 +30,7 @@ func getUserInfo(c *gin.Context) (bool, string, string) {
 	return true, username, role
 }
 
-// 🌐 HTML: Страница регистрации
+// 🌐 Регистрация
 func ShowRegisterPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
@@ -41,7 +42,7 @@ func ShowRegisterPage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Страница входа
+// 🌐 Вход
 func ShowLoginPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
@@ -53,19 +54,24 @@ func ShowLoginPage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Главная страница со списком автомобилей
+// 🌐 Главная: только одобренные посты
 func ShowCarsPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
+
+	var approvedPosts []models.Post
+	config.DB.Preload("Author").Where("approved = true").Order("created_at desc").Find(&approvedPosts)
+
 	c.HTML(http.StatusOK, "layout.html", gin.H{
 		"Title":           "Автомобили",
 		"Content":         "cars.html",
 		"IsAuthenticated": auth,
 		"Username":        username,
 		"Role":            role,
+		"Posts":           approvedPosts,
 	})
 }
 
-// 🌐 HTML: Профиль пользователя
+// 🌐 Профиль
 func ShowProfilePage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
@@ -77,19 +83,7 @@ func ShowProfilePage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Админ-панель пользователей
-func ShowAdminUsersPage(c *gin.Context) {
-	auth, username, role := getUserInfo(c)
-	c.HTML(http.StatusOK, "layout.html", gin.H{
-		"Title":           "Админ-панель пользователей",
-		"Content":         "admin_users.html",
-		"IsAuthenticated": auth,
-		"Username":        username,
-		"Role":            role,
-	})
-}
-
-// 🌐 HTML: Страница добавления авто
+// 🌐 Страница добавления автомобиля
 func ShowCarAddPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
@@ -101,11 +95,11 @@ func ShowCarAddPage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Редактирование авто
+// 🌐 Страница редактирования автомобиля
 func ShowCarEditPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
-		"Title":           "Редактировать автомобиль",
+		"Title":           "Редактировать авто",
 		"Content":         "car_edit.html",
 		"IsAuthenticated": auth,
 		"Username":        username,
@@ -113,7 +107,7 @@ func ShowCarEditPage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Список авто в админке
+// 🌐 Админ: список машин
 func ShowAdminCarsPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{
@@ -125,7 +119,19 @@ func ShowAdminCarsPage(c *gin.Context) {
 	})
 }
 
-// 🌐 HTML: Модерация постов
+// 🌐 Админ: список пользователей
+func ShowAdminUsersPage(c *gin.Context) {
+	auth, username, role := getUserInfo(c)
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"Title":           "Пользователи",
+		"Content":         "admin_users.html",
+		"IsAuthenticated": auth,
+		"Username":        username,
+		"Role":            role,
+	})
+}
+
+// 🌐 Админ: модерация постов
 func ShowAdminPostsPage(c *gin.Context) {
 	auth, username, role := getUserInfo(c)
 	c.HTML(http.StatusOK, "layout.html", gin.H{

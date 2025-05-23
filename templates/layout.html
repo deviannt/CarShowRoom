@@ -14,6 +14,7 @@
                 <li class="nav-item"><a class="nav-link" href="/cars">Главная</a></li>
                 <li class="nav-item d-none" id="navProfile"><a class="nav-link" href="/profile">Профиль</a></li>
                 <li class="nav-item d-none" id="navAdmin"><a class="nav-link" href="/admin/users">Админ</a></li>
+                <li class="nav-item d-none" id="navPosts"><a class="nav-link" href="/admin/cars">Авто на модерации</a></li>
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item d-none" id="navUsername">
@@ -44,6 +45,7 @@
     {{ else if eq .Content "profile.html" }}{{ template "profile.html" . }}
     {{ else if eq .Content "admin_users.html" }}{{ template "admin_users.html" . }}
     {{ else if eq .Content "admin_cars.html" }}{{ template "admin_cars.html" . }}
+    {{ else if eq .Content "admin_posts.html" }}{{ template "admin_posts.html" . }}
     {{ else if eq .Content "car_add.html" }}{{ template "car_add.html" . }}
     {{ else if eq .Content "car_edit.html" }}{{ template "car_edit.html" . }}
     {{ else if eq .Content "mycars.html" }}{{ template "mycars.html" . }}
@@ -71,6 +73,7 @@
 
             if (role === "admin" || role === "superadmin") {
                 document.getElementById("navAdmin").classList.remove("d-none");
+                document.getElementById("navPosts").classList.remove("d-none");
             }
 
             document.getElementById("postAdButton").classList.remove("d-none");

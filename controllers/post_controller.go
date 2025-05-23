@@ -47,7 +47,7 @@ func CreatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Пост отправлен на модерацию"})
 }
 
-// ✅ Список неподтверждённых постов (для модератора)
+// ✅ Список неподтверждённых постов (для модерации)
 func ListUnapprovedPosts(c *gin.Context) {
 	var posts []models.Post
 	if err := config.DB.Preload("Author").Where("approved = false").Find(&posts).Error; err != nil {
@@ -57,7 +57,7 @@ func ListUnapprovedPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, posts)
 }
 
-// ✅ Подтверждение поста
+// ✅ Подтверждение поста (админ)
 func ApprovePost(c *gin.Context) {
 	var post models.Post
 	if err := config.DB.First(&post, c.Param("id")).Error; err != nil {
@@ -69,11 +69,38 @@ func ApprovePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Пост одобрен"})
 }
 
-// ✅ Удаление поста
+// ✅ Удаление поста (админ)
 func DeletePost(c *gin.Context) {
 	if err := config.DB.Delete(&models.Post{}, c.Param("id")).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка удаления поста"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Пост удалён"})
+}
+
+// ✏️ Обновление поста (админ)
+func UpdatePost(c *gin.Context) {
+	var input struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil || input.Title == "" || input.Description == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
+		return
+	}
+
+	var post models.Post
+	if err := config.DB.First(&post, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Пост не найден"})
+		return
+	}
+
+	post.Title = input.Title
+	post.Description = input.Description
+	if err := config.DB.Save(&post).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка обновления поста"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Пост обновлён"})
 }
