@@ -1,19 +1,21 @@
 {{ define "cars.html" }}
 <h2 class="page-title">Автомобили</h2>
 
-<form class="row filter-bar mb-4" id="filterForm">
-    <div class="col-md-5 mb-2">
-        <input type="text" class="form-control" placeholder="Марка или модель" name="query">
-    </div>
-    <div class="col-md-4 mb-2">
-        <input type="number" class="form-control" placeholder="Макс. цена" name="max_price">
-    </div>
-    <div class="col-md-3 mb-2">
-        <button type="submit" class="btn btn-outline-primary w-100">Фильтровать</button>
+<form class="filter-bar mb-4" id="filterForm">
+    <div class="row g-3 justify-content-center">
+        <div class="col-md-5">
+            <input type="text" class="form-control" placeholder="Марка или модель" name="query">
+        </div>
+        <div class="col-md-4">
+            <input type="number" class="form-control" placeholder="Макс. цена" name="max_price">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary w-100">Фильтровать</button>
+        </div>
     </div>
 </form>
 
-<div id="car-list" class="row text-center text-muted">Загрузка...</div>
+<div id="car-list" class="row justify-content-center">Загрузка...</div>
 
 <script>
     document.getElementById("filterForm").addEventListener("submit", function(e) {
@@ -31,19 +33,17 @@
         if ([...params].length > 0) url += `?${params.toString()}`;
 
         const container = document.getElementById('car-list');
-        container.innerHTML = '<div class="text-muted">Загрузка...</div>';
+        container.innerHTML = '<div class="text-muted text-center">Загрузка...</div>';
 
         try {
             const headers = {};
             const token = localStorage.getItem("token");
-            if (token) {
-                headers["Authorization"] = "Bearer " + token;
-            }
+            if (token) headers["Authorization"] = "Bearer " + token;
 
             const res = await fetch(url, { headers });
 
             if (!res.ok) {
-                container.innerHTML = `<div class="text-danger">Ошибка загрузки данных</div>`;
+                container.innerHTML = `<div class="text-danger text-center">Ошибка загрузки данных</div>`;
                 return;
             }
 
@@ -51,28 +51,32 @@
             container.innerHTML = '';
 
             if (cars.length === 0) {
-                container.innerHTML = '<div class="text-muted">Нет объявлений</div>';
+                container.innerHTML = '<div class="text-muted text-center">Нет объявлений</div>';
                 return;
             }
 
             cars.forEach(car => {
                 const col = document.createElement('div');
-                col.className = 'col-md-4 mb-4';
+                col.className = 'col-sm-12 col-md-6 col-lg-4 d-flex align-items-stretch';
                 col.innerHTML = `
-                    <div class="card car-card h-100">
-                        <img src="${car.image_url}" class="card-img-top" alt="${car.model}" style="height:200px; object-fit:cover;">
-                        <div class="card-body">
-                            <h5 class="card-title">${car.brand} ${car.model}</h5>
-                            <p class="card-text">${car.description}</p>
-                            <p><strong>Год:</strong> ${car.year}</p>
-                            <p><strong>Цена:</strong> $${car.price}</p>
+                    <div class="card car-card shadow-sm w-100">
+                        <img src="${car.image_url}" class="card-img-top" alt="${car.model}">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title">${car.brand} ${car.model}</h5>
+                                <p class="card-text">${car.description}</p>
+                            </div>
+                            <div>
+                                <p class="mb-1"><strong>Год:</strong> ${car.year}</p>
+                                <p class="mb-0"><strong>Цена:</strong> $${Number(car.price).toLocaleString('en-US')}</p>
+                            </div>
                         </div>
                     </div>
                 `;
                 container.appendChild(col);
             });
         } catch (err) {
-            container.innerHTML = `<div class="text-danger">Ошибка загрузки</div>`;
+            container.innerHTML = `<div class="text-danger text-center">Ошибка загрузки</div>`;
             console.error(err);
         }
     }
