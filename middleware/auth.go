@@ -1,13 +1,12 @@
 package middleware
 
 import (
+	"autosalon/config"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
-
-var jwtKey = []byte("secret_key")
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -18,10 +17,13 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return config.JwtKey, nil
 		})
 
-		if err != nil || !token.Valid {
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("userID", uint(claims["user_id"].(float64)))
+			c.Set("userRole", claims["role"].(string))
+		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверный токен"})
 			return
 		}

@@ -1,3 +1,4 @@
 package config
 
-var JwtKey = []byte("secret_key")
+// 🔐 Глобальный JWT-ключ
+var JwtKey = []byte("secret_key") // Лучше заменить на os.Getenv("JWT_SECRET")

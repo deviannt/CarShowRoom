@@ -84,3 +84,7 @@ func DeleteCar(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Авто удалено"})
 }
+
+func ShowCarAddPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "car_add.html", nil)
+}

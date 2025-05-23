@@ -10,27 +10,25 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// ✅ Загружаем все HTML-шаблоны, включая вложенные
+	// HTML и статика
 	r.LoadHTMLGlob("templates/*.html")
-
-	// ✅ Подключение статики (если будет)
 	r.Static("/static", "./static")
 
-	// ✅ Главная страница
+	// Главная
 	r.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/cars") // или /login по желанию
+		c.Redirect(302, "/cars")
 	})
 
-	// ✅ Публичные HTML-страницы
+	// Публичные страницы
 	r.GET("/register", controllers.ShowRegisterPage)
 	r.GET("/login", controllers.ShowLoginPage)
-	r.GET("/logout", controllers.Logout) // 👈 Новый маршрут
+	r.GET("/logout", controllers.Logout)
 	r.GET("/cars", controllers.ShowCarsPage)
 
-	// ✅ Профиль (только для авторизованных)
+	// Профиль
 	r.GET("/profile", middleware.AuthMiddleware(), controllers.ShowProfilePage)
 
-	// ✅ Админ-панель
+	// HTML: админ-панель
 	adminPages := r.Group("/admin")
 	adminPages.Use(middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"))
 	{
@@ -40,13 +38,13 @@ func SetupRouter() *gin.Engine {
 		adminPages.GET("/cars", controllers.ShowAdminCarsPage)
 	}
 
-	// ✅ REST API
+	// REST API
 	api := r.Group("/api")
 	{
 		api.POST("/register", controllers.Register)
 		api.POST("/login", controllers.Login)
 
-		// 🔒 Защищённые API
+		// Защищённые API
 		secured := api.Group("/")
 		secured.Use(middleware.AuthMiddleware())
 		{
@@ -57,27 +55,29 @@ func SetupRouter() *gin.Engine {
 			secured.DELETE("/profile", controllers.DeleteProfile)
 			secured.POST("/profile/avatar", controllers.UploadAvatar)
 
-			// 🚗 Авто
+			// 🚗 Пользователь может просматривать машины
 			secured.GET("/cars", controllers.GetCars)
 			secured.GET("/cars/:id", controllers.GetCar)
 
-			// 🛠️ Админ-функции
+			// 🔒 ADMIN доступ
 			admin := secured.Group("/")
 			admin.Use(middleware.RoleMiddleware("admin"))
 			{
 				admin.POST("/cars", controllers.CreateCar)
-				admin.PUT("/cars/:id", controllers.UpdateCar)
-				admin.DELETE("/cars/:id", controllers.DeleteCar)
-
+				admin.PUT("/cars/:id/approve", controllers.ApproveCar)
 				admin.GET("/users", controllers.ListUsers)
-				admin.PUT("/users/:id/block", controllers.BlockUser)
 			}
 
-			// 🔥 Супер-админ
+			// 🔥 SUPERADMIN доступ
 			superadmin := secured.Group("/")
 			superadmin.Use(middleware.RoleMiddleware("superadmin"))
 			{
+				superadmin.PUT("/cars/:id", controllers.UpdateCar)
+				superadmin.DELETE("/cars/:id", controllers.DeleteCar)
+
 				superadmin.DELETE("/users/:id", controllers.DeleteUser)
+				superadmin.PUT("/users/:id/role", controllers.ChangeUserRole)
+				superadmin.PUT("/users/:id/block", controllers.BlockUser)
 			}
 		}
 	}
