@@ -11,38 +11,37 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// ✅ Загружаем все HTML-шаблоны, включая вложенные
+	// ✅ Шаблоны и статика
 	r.LoadHTMLGlob("templates/*.html")
-
-	// ✅ Подключение статики (изображения, CSS и т.д.)
 	r.Static("/static", "./static")
 
-	// ✅ Главная страница
+	// ✅ Публичные HTML-страницы
 	r.GET("/", func(c *gin.Context) {
 		c.Redirect(302, "/cars")
 	})
-
-	// ✅ Публичные HTML-страницы
 	r.GET("/register", controllers.ShowRegisterPage)
 	r.GET("/login", controllers.ShowLoginPage)
 	r.GET("/logout", controllers.Logout)
 	r.GET("/cars", controllers.ShowCarsPage)
 
-	// ✅ Страница профиля (только для авторизованных)
+	// ✅ Защищённые HTML-страницы
 	r.GET("/profile", middleware.AuthMiddleware(), controllers.ShowProfilePage)
 
-	// ✅ Страница модерации постов
 	r.GET("/admin/posts", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminPostsPage)
+	r.GET("/admin/users", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), func(c *gin.Context) {
+		c.HTML(http.StatusOK, "layout.html", gin.H{
+			"Title":   "Пользователи",
+			"Content": "admin_users.html",
+		})
+	})
 
-	// ✅ Мои авто
-	r.GET("/mycars", func(c *gin.Context) {
+	r.GET("/mycars", middleware.AuthMiddleware(), func(c *gin.Context) {
 		c.HTML(http.StatusOK, "layout.html", gin.H{
 			"Title":   "Мои объявления",
 			"Content": "mycars.html",
 		})
 	})
 
-	// ✅ Страница добавления машины
 	r.GET("/cars/add", middleware.AuthMiddleware(), func(c *gin.Context) {
 		c.HTML(http.StatusOK, "layout.html", gin.H{
 			"Title":   "Добавить автомобиль",
@@ -56,7 +55,6 @@ func SetupRouter() *gin.Engine {
 		api.POST("/register", controllers.Register)
 		api.POST("/login", controllers.Login)
 
-		// 🔒 Защищённые маршруты
 		secured := api.Group("/")
 		secured.Use(middleware.AuthMiddleware())
 		{
@@ -71,12 +69,12 @@ func SetupRouter() *gin.Engine {
 			secured.GET("/cars", controllers.GetCars)
 			secured.GET("/cars/:id", controllers.GetCar)
 			secured.GET("/mycars", controllers.GetMyCars)
-			secured.POST("/cars", controllers.CreateCar) // 👈 доступно всем авторизованным
+			secured.POST("/cars", controllers.CreateCar)
 
 			// 📝 Посты
 			secured.POST("/posts", controllers.CreatePost)
 
-			// 🛠️ Админ-функции
+			// 🛠️ Админ
 			admin := secured.Group("/")
 			admin.Use(middleware.RoleMiddleware("admin"))
 			{
@@ -85,6 +83,7 @@ func SetupRouter() *gin.Engine {
 
 				admin.GET("/users", controllers.ListUsers)
 				admin.PUT("/users/:id/block", controllers.BlockUser)
+				admin.PUT("/users/:id/username", controllers.UpdateUsername)
 
 				admin.GET("/posts", controllers.ListUnapprovedPosts)
 				admin.PUT("/posts/:id/approve", controllers.ApprovePost)
@@ -96,6 +95,8 @@ func SetupRouter() *gin.Engine {
 			superadmin.Use(middleware.RoleMiddleware("superadmin"))
 			{
 				superadmin.DELETE("/users/:id", controllers.DeleteUser)
+				superadmin.PUT("/users/:id/role", controllers.SetUserRole)
+				superadmin.PUT("/users/:id/unblock", controllers.UnblockUser) // ✅ Добавлено
 			}
 		}
 	}

@@ -1,69 +1,120 @@
-{{ define "content" }}
+{{ define "admin_users.html" }}
 <h2 class="mb-4">Пользователи</h2>
-<table class="table table-striped">
+
+<table class="table table-bordered">
     <thead>
     <tr>
         <th>ID</th>
-        <th>Email</th>
         <th>Имя</th>
+        <th>Email</th>
         <th>Роль</th>
-        <th>Заблокирован</th>
+        <th>Статус</th>
         <th>Действия</th>
     </tr>
     </thead>
-    <tbody id="user-table">
-    <!-- Пользователи подгрузятся сюда -->
-    </tbody>
+    <tbody id="usersTableBody"></tbody>
 </table>
 
 <script>
     async function loadUsers() {
         const res = await fetch("/api/users", {
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
         });
         const users = await res.json();
-        const tbody = document.getElementById("user-table");
+        const tbody = document.getElementById("usersTableBody");
         tbody.innerHTML = "";
 
         users.forEach(user => {
-            tbody.innerHTML += `
-            <tr>
+            const isSuperadmin = user.role === "superadmin";
+            const roleBadge = isSuperadmin ? "🛡️" : "";
+            const isBlocked = user.is_blocked;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
                 <td>${user.ID}</td>
-                <td>${user.email}</td>
-                <td>${user.name}</td>
-                <td>${user.role}</td>
-                <td>${user.is_blocked ? "Да" : "Нет"}</td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="blockUser(${user.ID})">Блокировать</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.ID})">Удалить</button>
+                    <input type="text" value="${user.username}" data-id="${user.ID}" class="form-control form-control-sm username-input" ${isSuperadmin ? "disabled" : ""} />
                 </td>
-            </tr>
-        `;
+                <td>${user.email}</td>
+                <td>
+                    <select class="form-select form-select-sm role-select" data-id="${user.ID}" ${isSuperadmin ? "disabled" : ""}>
+                        <option value="user" ${user.role === "user" ? "selected" : ""}>user</option>
+                        <option value="admin" ${user.role === "admin" ? "selected" : ""}>admin</option>
+                        <option value="superadmin" ${user.role === "superadmin" ? "selected" : ""}>superadmin</option>
+                    </select>
+                    ${roleBadge}
+                </td>
+                <td>${isBlocked ? "🔒 Заблокирован" : "✅ Активен"}</td>
+                <td>
+                    ${isBlocked
+                ? `<button class="btn btn-sm btn-success" onclick="unblockUser(${user.ID})">Разбан</button>`
+                : `<button class="btn btn-sm btn-danger" onclick="blockUser(${user.ID})" ${isSuperadmin ? "disabled" : ""}>Бан</button>`
+            }
+                    <button class="btn btn-sm btn-warning" onclick="updateUsername(${user.ID})" ${isSuperadmin ? "disabled" : ""}>Имя</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll(".role-select").forEach(select => {
+            select.addEventListener("change", async e => {
+                const id = e.target.dataset.id;
+                const newRole = e.target.value;
+                const res = await fetch(`/api/users/${id}/role`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + localStorage.getItem("token")
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadUsers();
+            });
         });
     }
 
     async function blockUser(id) {
-        await fetch(`/api/users/${id}/block`, {
+        if (!confirm("Заблокировать пользователя?")) return;
+        const res = await fetch(`/api/users/${id}/block`, {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        });
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadUsers();
+    }
+
+    async function unblockUser(id) {
+        if (!confirm("Разблокировать пользователя?")) return;
+        const res = await fetch(`/api/users/${id}/unblock`, {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        });
+        const result = await res.json();
+        alert(result.message || result.error);
+        loadUsers();
+    }
+
+    async function updateUsername(id) {
+        const input = document.querySelector(`.username-input[data-id="${id}"]`);
+        const username = input.value.trim();
+        if (!username) return alert("Имя не может быть пустым");
+
+        const res = await fetch(`/api/users/${id}/username`, {
             method: "PUT",
             headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify({ username })
         });
+        const result = await res.json();
+        alert(result.message || result.error);
         loadUsers();
     }
 
-    async function deleteUser(id) {
-        await fetch(`/api/users/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
-        });
-        loadUsers();
-    }
-
-    document.addEventListener("DOMContentLoaded", loadUsers);
+    loadUsers();
 </script>
 {{ end }}
