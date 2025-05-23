@@ -13,32 +13,25 @@ func SetupRouter() *gin.Engine {
 	// ✅ Загружаем все HTML-шаблоны, включая вложенные
 	r.LoadHTMLGlob("templates/*.html")
 
-	// ✅ Подключение статики (если будет)
+	// ✅ Подключение статики (изображения, CSS и т.д.)
 	r.Static("/static", "./static")
 
 	// ✅ Главная страница
 	r.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/cars") // или /login по желанию
+		c.Redirect(302, "/cars")
 	})
 
 	// ✅ Публичные HTML-страницы
 	r.GET("/register", controllers.ShowRegisterPage)
 	r.GET("/login", controllers.ShowLoginPage)
-	r.GET("/logout", controllers.Logout) // 👈 Новый маршрут
+	r.GET("/logout", controllers.Logout)
 	r.GET("/cars", controllers.ShowCarsPage)
 
-	// ✅ Профиль (только для авторизованных)
+	// ✅ Страница профиля (только для авторизованных)
 	r.GET("/profile", middleware.AuthMiddleware(), controllers.ShowProfilePage)
 
-	// ✅ Админ-панель
-	adminPages := r.Group("/admin")
-	adminPages.Use(middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"))
-	{
-		adminPages.GET("/users", controllers.ShowAdminUsersPage)
-		adminPages.GET("/cars/add", controllers.ShowCarAddPage)
-		adminPages.GET("/cars/edit", controllers.ShowCarEditPage)
-		adminPages.GET("/cars", controllers.ShowAdminCarsPage)
-	}
+	// ✅ Страница модерации постов
+	r.GET("/admin/posts", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminPostsPage)
 
 	// ✅ REST API
 	api := r.Group("/api")
@@ -46,7 +39,7 @@ func SetupRouter() *gin.Engine {
 		api.POST("/register", controllers.Register)
 		api.POST("/login", controllers.Login)
 
-		// 🔒 Защищённые API
+		// 🔒 Защищённые маршруты
 		secured := api.Group("/")
 		secured.Use(middleware.AuthMiddleware())
 		{
@@ -57,20 +50,30 @@ func SetupRouter() *gin.Engine {
 			secured.DELETE("/profile", controllers.DeleteProfile)
 			secured.POST("/profile/avatar", controllers.UploadAvatar)
 
-			// 🚗 Авто
+			// 🚗 Автомобили
 			secured.GET("/cars", controllers.GetCars)
 			secured.GET("/cars/:id", controllers.GetCar)
+
+			// 📝 Посты
+			secured.POST("/posts", controllers.CreatePost)
 
 			// 🛠️ Админ-функции
 			admin := secured.Group("/")
 			admin.Use(middleware.RoleMiddleware("admin"))
 			{
+				// 🚗 Автомобили
 				admin.POST("/cars", controllers.CreateCar)
 				admin.PUT("/cars/:id", controllers.UpdateCar)
 				admin.DELETE("/cars/:id", controllers.DeleteCar)
 
+				// 👥 Пользователи
 				admin.GET("/users", controllers.ListUsers)
 				admin.PUT("/users/:id/block", controllers.BlockUser)
+
+				// 📝 Посты (модерация)
+				admin.GET("/posts", controllers.ListUnapprovedPosts)
+				admin.PUT("/posts/:id/approve", controllers.ApprovePost)
+				admin.DELETE("/posts/:id", controllers.DeletePost)
 			}
 
 			// 🔥 Супер-админ

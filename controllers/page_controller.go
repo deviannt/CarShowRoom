@@ -124,3 +124,15 @@ func ShowAdminCarsPage(c *gin.Context) {
 		"Role":            role,
 	})
 }
+
+// 🌐 HTML: Модерация постов
+func ShowAdminPostsPage(c *gin.Context) {
+	auth, username, role := getUserInfo(c)
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"Title":           "Посты на модерации",
+		"Content":         "admin_posts.html",
+		"IsAuthenticated": auth,
+		"Username":        username,
+		"Role":            role,
+	})
+}

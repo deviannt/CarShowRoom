@@ -1,0 +1,67 @@
+{{ define "admin_posts.html" }}
+<h2 class="mb-4">Посты на модерации</h2>
+<div id="postsContainer" class="row g-4"></div>
+
+<script>
+  async function loadPosts() {
+    const res = await fetch("/api/posts", { credentials: 'include' });
+    const posts = await res.json();
+
+    const container = document.getElementById("postsContainer");
+    container.innerHTML = "";
+
+    if (posts.length === 0) {
+      container.innerHTML = '<p class="text-muted">Нет постов на модерации</p>';
+      return;
+    }
+
+    for (const post of posts) {
+      const card = document.createElement("div");
+      card.className = "col-md-6 col-lg-4";
+      card.innerHTML = `
+                <div class="card shadow-sm h-100">
+                    <img src="${post.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">${post.title}</h5>
+                        <h6 class="text-muted">Автор: ${post.author}</h6>
+                        <p class="card-text">${post.description}</p>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-success btn-sm" onclick="approvePost(${post.id})">Одобрить</button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">Удалить</button>
+                        </div>
+                    </div>
+                </div>`;
+      container.appendChild(card);
+    }
+  }
+
+  async function approvePost(id) {
+    const res = await fetch(`/api/posts/${id}/approve`, {
+      method: "PUT",
+      credentials: "include"
+    });
+    if (res.ok) {
+      alert("Пост одобрен");
+      loadPosts();
+    } else {
+      alert("Ошибка при одобрении");
+    }
+  }
+
+  async function deletePost(id) {
+    if (!confirm("Удалить пост?")) return;
+    const res = await fetch(`/api/posts/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+    if (res.ok) {
+      alert("Пост удалён");
+      loadPosts();
+    } else {
+      alert("Ошибка при удалении");
+    }
+  }
+
+  loadPosts();
+</script>
+{{ end }}

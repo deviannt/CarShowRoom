@@ -31,13 +31,18 @@ func ConnectDB() {
 			log.Println("✅ Успешно подключено к базе данных")
 
 			// 🔧 Автоматическая миграция таблиц
-			err = DB.AutoMigrate(&models.User{}, &models.Car{})
+			err = DB.AutoMigrate(
+				&models.User{},
+				&models.Car{},
+				&models.Post{}, // ✅ добавлена миграция постов
+			)
 			if err != nil {
 				log.Fatalf("❌ Ошибка миграции: %v", err)
 			}
 
 			return
 		}
+
 		log.Printf("⏳ Попытка %d из %d: не удалось подключиться к БД: %v", i, maxRetries, err)
 		time.Sleep(2 * time.Second)
 	}
