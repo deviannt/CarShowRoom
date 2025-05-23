@@ -101,7 +101,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// ❗ Не ставим cookie — работаем только с localStorage
+	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Успешный вход",
 		"token":    token,

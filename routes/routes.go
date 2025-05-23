@@ -34,10 +34,19 @@ func SetupRouter() *gin.Engine {
 	// ✅ Страница модерации постов
 	r.GET("/admin/posts", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminPostsPage)
 
+	// ✅ Мои авто
 	r.GET("/mycars", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "layout", gin.H{
+		c.HTML(http.StatusOK, "layout.html", gin.H{
 			"Title":   "Мои объявления",
 			"Content": "mycars.html",
+		})
+	})
+
+	// ✅ Страница добавления машины
+	r.GET("/cars/add", middleware.AuthMiddleware(), func(c *gin.Context) {
+		c.HTML(http.StatusOK, "layout.html", gin.H{
+			"Title":   "Добавить автомобиль",
+			"Content": "car_add.html",
 		})
 	})
 
@@ -62,6 +71,7 @@ func SetupRouter() *gin.Engine {
 			secured.GET("/cars", controllers.GetCars)
 			secured.GET("/cars/:id", controllers.GetCar)
 			secured.GET("/mycars", controllers.GetMyCars)
+			secured.POST("/cars", controllers.CreateCar) // 👈 доступно всем авторизованным
 
 			// 📝 Посты
 			secured.POST("/posts", controllers.CreatePost)
@@ -70,16 +80,12 @@ func SetupRouter() *gin.Engine {
 			admin := secured.Group("/")
 			admin.Use(middleware.RoleMiddleware("admin"))
 			{
-				// 🚗 Автомобили
-				admin.POST("/cars", controllers.CreateCar)
 				admin.PUT("/cars/:id", controllers.UpdateCar)
 				admin.DELETE("/cars/:id", controllers.DeleteCar)
 
-				// 👥 Пользователи
 				admin.GET("/users", controllers.ListUsers)
 				admin.PUT("/users/:id/block", controllers.BlockUser)
 
-				// 📝 Посты (модерация)
 				admin.GET("/posts", controllers.ListUnapprovedPosts)
 				admin.PUT("/posts/:id/approve", controllers.ApprovePost)
 				admin.DELETE("/posts/:id", controllers.DeletePost)
