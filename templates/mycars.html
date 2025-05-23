@@ -1,0 +1,58 @@
+{{ define "mycars.html" }}
+<h2 class="mb-4">Мои объявления</h2>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Марка</th>
+        <th>Модель</th>
+        <th>Год</th>
+        <th>Цена</th>
+        <th>Статус</th>
+    </tr>
+    </thead>
+    <tbody id="myCarsTable">
+    <tr><td colspan="5">Загрузка...</td></tr>
+    </tbody>
+</table>
+
+<script>
+    async function loadMyCars() {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/mycars", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        const table = document.getElementById("myCarsTable");
+        if (!res.ok) {
+            table.innerHTML = `<tr><td colspan="5" class="text-danger">Ошибка загрузки данных</td></tr>`;
+            return;
+        }
+
+        const cars = await res.json();
+        if (cars.length === 0) {
+            table.innerHTML = `<tr><td colspan="5">У вас пока нет объявлений.</td></tr>`;
+            return;
+        }
+
+        table.innerHTML = "";
+        cars.forEach(car => {
+            let statusLabel = {
+                pending: "⏳ На модерации",
+                approved: "✅ Одобрено",
+                rejected: "❌ Отклонено"
+            }[car.status] || car.status;
+
+            table.innerHTML += `
+            <tr>
+                <td>${car.brand}</td>
+                <td>${car.model}</td>
+                <td>${car.year}</td>
+                <td>${car.price} ₽</td>
+                <td>${statusLabel}</td>
+            </tr>`;
+        });
+    }
+
+    loadMyCars();
+</script>
+{{ end }}

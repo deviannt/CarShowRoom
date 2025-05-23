@@ -40,13 +40,39 @@ func GetCar(c *gin.Context) {
 
 // Создать авто
 func CreateCar(c *gin.Context) {
-	var car models.Car
-	if err := c.ShouldBindJSON(&car); err != nil {
+	var input struct {
+		Brand       string  `json:"brand"`
+		ModelName   string  `json:"model"`
+		Year        int     `json:"year"`
+		Price       float64 `json:"price"`
+		Description string  `json:"description"`
+		ImageURL    string  `json:"image_url"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные"})
 		return
 	}
-	config.DB.Create(&car)
-	c.JSON(http.StatusOK, car)
+
+	userID := c.GetUint("userID")
+
+	car := models.Car{
+		Brand:       input.Brand,
+		ModelName:   input.ModelName,
+		Year:        input.Year,
+		Price:       input.Price,
+		Description: input.Description,
+		ImageURL:    input.ImageURL,
+		UserID:      userID,
+		Status:      "pending",
+	}
+
+	if err := config.DB.Create(&car).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при сохранении"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Объявление отправлено на модерацию"})
 }
 
 // Обновить авто
@@ -85,6 +111,14 @@ func DeleteCar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Авто удалено"})
 }
 
-func ShowCarAddPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "car_add.html", nil)
+func GetMyCars(c *gin.Context) {
+	userID := c.GetUint("userID")
+
+	var cars []models.Car
+	if err := config.DB.Where("user_id = ?", userID).Find(&cars).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при получении машин"})
+		return
+	}
+
+	c.JSON(http.StatusOK, cars)
 }

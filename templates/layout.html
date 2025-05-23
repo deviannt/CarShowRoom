@@ -12,32 +12,32 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="/cars">Главная</a></li>
-                {{ if .IsAuthenticated }}
-                <li class="nav-item"><a class="nav-link" href="/profile">Профиль</a></li>
-                {{ if eq .Role "admin" }}
-                <li class="nav-item"><a class="nav-link" href="/admin/users">Админ</a></li>
-                {{ end }}
-                {{ end }}
+                <li class="nav-item d-none" id="navProfile"><a class="nav-link" href="/profile">Профиль</a></li>
+                <li class="nav-item d-none" id="navAdmin"><a class="nav-link" href="/admin/users">Админ</a></li>
             </ul>
             <ul class="navbar-nav">
-                {{ if .IsAuthenticated }}
-                <li class="nav-item d-flex align-items-center">
-                        <span class="nav-link text-white d-flex align-items-center">
-                            <img src="https://ui-avatars.com/api/?name={{ .Username }}&background=0D8ABC&color=fff&size=32" class="rounded-circle me-2" alt="avatar" style="width: 32px; height: 32px;">
-                            {{ .Username }}
-                        </span>
+                <li class="nav-item d-none" id="navUsername">
+                    <span class="nav-link text-white d-flex align-items-center">
+                        <img id="navAvatar" src="" class="rounded-circle me-2" alt="avatar" style="width: 32px; height: 32px;">
+                        <span id="usernameText"></span>
+                    </span>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="/logout">Выход</a></li>
-                {{ else }}
-                <li class="nav-item"><a class="nav-link" href="/login">Вход</a></li>
-                <li class="nav-item"><a class="nav-link" href="/register">Регистрация</a></li>
-                {{ end }}
+                <li class="nav-item" id="navLogin"><a class="nav-link" href="/login">Вход</a></li>
+                <li class="nav-item" id="navRegister"><a class="nav-link" href="/register">Регистрация</a></li>
+                <li class="nav-item d-none" id="navLogout"><a class="nav-link" href="/logout" onclick="handleLogout()">Выход</a></li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-5">
+<!-- 🔰 Пользовательские действия -->
+<div class="container mt-3">
+    <a id="postAdButton" href="/cars/add" class="btn btn-success d-none">+ Подать объявление</a>
+    <a id="myCarsLink" href="/mycars" class="btn btn-outline-primary d-none ms-2">Мои объявления</a>
+</div>
+
+<!-- 🧩 Контент -->
+<div class="container mt-4">
     {{ if eq .Content "register.html" }}{{ template "register.html" . }}
     {{ else if eq .Content "login.html" }}{{ template "login.html" . }}
     {{ else if eq .Content "cars.html" }}{{ template "cars.html" . }}
@@ -46,9 +46,45 @@
     {{ else if eq .Content "admin_cars.html" }}{{ template "admin_cars.html" . }}
     {{ else if eq .Content "car_add.html" }}{{ template "car_add.html" . }}
     {{ else if eq .Content "car_edit.html" }}{{ template "car_edit.html" . }}
+    {{ else if eq .Content "mycars.html" }}{{ template "mycars.html" . }}
     {{ end }}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function checkAuth() {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+        const role = localStorage.getItem("role");
+
+        if (token && username) {
+            document.getElementById("navLogin").style.display = "none";
+            document.getElementById("navRegister").style.display = "none";
+            document.getElementById("navLogout").classList.remove("d-none");
+            document.getElementById("navUsername").classList.remove("d-none");
+            document.getElementById("usernameText").textContent = username;
+            document.getElementById("navAvatar").src =
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=32`;
+
+            document.getElementById("navProfile").classList.remove("d-none");
+
+            if (role === "admin" || role === "superadmin") {
+                document.getElementById("navAdmin").classList.remove("d-none");
+            }
+
+            document.getElementById("postAdButton").classList.remove("d-none");
+            document.getElementById("myCarsLink").classList.remove("d-none");
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+    }
+
+    checkAuth();
+</script>
 </body>
 </html>

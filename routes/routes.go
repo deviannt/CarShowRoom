@@ -3,6 +3,7 @@ package routes
 import (
 	"autosalon/controllers"
 	"autosalon/middleware"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,13 @@ func SetupRouter() *gin.Engine {
 	// ✅ Страница модерации постов
 	r.GET("/admin/posts", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminPostsPage)
 
+	r.GET("/mycars", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "layout", gin.H{
+			"Title":   "Мои объявления",
+			"Content": "mycars.html",
+		})
+	})
+
 	// ✅ REST API
 	api := r.Group("/api")
 	{
@@ -53,6 +61,7 @@ func SetupRouter() *gin.Engine {
 			// 🚗 Автомобили
 			secured.GET("/cars", controllers.GetCars)
 			secured.GET("/cars/:id", controllers.GetCar)
+			secured.GET("/mycars", controllers.GetMyCars)
 
 			// 📝 Посты
 			secured.POST("/posts", controllers.CreatePost)

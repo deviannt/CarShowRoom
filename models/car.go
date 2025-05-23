@@ -10,4 +10,6 @@ type Car struct {
 	Price       float64 `json:"price"`
 	Description string  `json:"description"`
 	ImageURL    string  `json:"image_url"`
+	UserID      uint    `json:"user_id"`                         // кто подал
+	Status      string  `json:"status" gorm:"default:'pending'"` // pending, approved, rejected
 }

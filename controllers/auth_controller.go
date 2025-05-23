@@ -67,7 +67,6 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Регистрация прошла успешно"})
 }
 
-// ✅ Вход с установкой cookie
 func Login(c *gin.Context) {
 	var input struct {
 		Email    string `json:"email" binding:"required,email"`
@@ -102,8 +101,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Успешный вход"})
+	// ❗ Не ставим cookie — работаем только с localStorage
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "Успешный вход",
+		"token":    token,
+		"username": user.Username,
+		"role":     user.Role,
+	})
 }
 
 // 🚪 Logout — удаление токена

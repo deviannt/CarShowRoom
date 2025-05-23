@@ -16,15 +16,6 @@
 </form>
 
 <script>
-    function showAlert(message, type = "danger") {
-        const alert = `
-            <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
-            </div>`;
-        document.getElementById("alertContainer").innerHTML = alert;
-    }
-
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -36,11 +27,15 @@
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-                credentials: 'include' // ВАЖНО: позволяет браузеру сохранять cookie
+                body: JSON.stringify(data)
             });
             const result = await res.json();
             if (res.ok) {
+                // ✅ Сохраняем токен и данные пользователя
+                localStorage.setItem("token", result.token);
+                localStorage.setItem("username", result.username);
+                localStorage.setItem("role", result.role);
+
                 showAlert("Добро пожаловать!", "success");
                 setTimeout(() => window.location.href = "/cars", 1000);
             } else {
@@ -51,4 +46,5 @@
         }
     });
 </script>
+
 {{ end }}
