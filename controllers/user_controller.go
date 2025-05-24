@@ -8,14 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 📄 Получить всех пользователей (admin)
+// Получить всех пользователей (admin)
 func ListUsers(c *gin.Context) {
 	var users []models.User
 	config.DB.Find(&users)
 	c.JSON(http.StatusOK, users)
 }
 
-// 🚫 Заблокировать пользователя (admin)
+// Заблокировать пользователя (admin)
 func BlockUser(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
@@ -32,7 +32,7 @@ func BlockUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Пользователь заблокирован"})
 }
 
-// 🔓 Разблокировать пользователя (superadmin)
+// Разблокировать пользователя (superadmin)
 func UnblockUser(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
@@ -49,7 +49,7 @@ func UnblockUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Пользователь разблокирован"})
 }
 
-// ✏️ Изменить имя пользователя (admin)
+// Изменить имя пользователя (admin)
 func UpdateUsername(c *gin.Context) {
 	id := c.Param("id")
 	var input struct {
@@ -80,7 +80,7 @@ func UpdateUsername(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Имя пользователя обновлено"})
 }
 
-// 🔄 Изменить роль пользователя (superadmin)
+// Изменить роль пользователя (superadmin)
 func SetUserRole(c *gin.Context) {
 	var input struct {
 		Role string `json:"role"`
@@ -99,7 +99,7 @@ func SetUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Роль обновлена"})
 }
 
-// ❌ Удалить пользователя (superadmin)
+// Удалить пользователя (superadmin)
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 	config.DB.Delete(&models.User{}, id)
