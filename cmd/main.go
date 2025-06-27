@@ -1,9 +1,9 @@
 package main
 
 import (
+	"autosalon"
 	"autosalon/config"
 	"autosalon/models"
-	"autosalon/routes"
 	"log"
 	"os"
 
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Запуск маршрутизатора
-	r := routes.SetupRouter()
+	r := autosalon.SetupRouter()
 
 	// Получаем порт из переменных окружения
 	port := os.Getenv("PORT")
