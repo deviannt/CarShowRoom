@@ -3,16 +3,22 @@ package routes
 import (
 	"autosalon/controllers"
 	"autosalon/middleware"
+	"embed"
+	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+//go:embed ../templates/*.html
+var templatesFS embed.FS
+
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	// 🧩 HTML шаблоны и статика
-	r.LoadHTMLGlob("templates/*.html")
+	tmpl := template.Must(template.ParseFS(templatesFS, "templates/*.html"))
+	r.SetHTMLTemplate(tmpl)
 	r.Static("/static", "./static")
 
 	// 🔓 Публичные HTML страницы
