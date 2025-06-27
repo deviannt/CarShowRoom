@@ -24,18 +24,29 @@ h2 {
     border-radius: 14px;
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.04);
     overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .card.car-card:hover {
-    transform: none;
     box-shadow: 0 0 16px rgba(0, 119, 204, 0.2);
 }
 
 .card.car-card img {
     width: 100%;
+    height: 200px;
     object-fit: cover;
-    max-height: 200px;
     border-bottom: 1px solid #eee;
+    transition: transform 0.3s ease;
+}
+
+.card.car-card:hover img {
+    transform: scale(1.02);
+}
+
+.card-body {
+    flex-grow: 1;
 }
 
 .card-body h5 {
@@ -123,14 +134,7 @@ h2 {
     vertical-align: middle;
 }
 
-.table input[type="text"] {
-    padding: 6px 8px;
-    font-size: 0.95rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    width: 100%;
-}
-
+.table input[type="text"],
 .table select {
     padding: 6px 8px;
     font-size: 0.95rem;
@@ -145,4 +149,54 @@ h2 {
     font-size: 0.875rem;
     padding: 4px 10px;
     border-radius: 6px;
+}
+
+/* === Детальная страница автомобиля === */
+.car-detail {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 900px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.04);
+}
+
+.car-detail h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #0077cc;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.car-detail img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.car-info p {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #444;
+}
+
+.car-info p strong {
+    color: #0077cc;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: #0077cc;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #005fa3;
+    text-decoration: underline;
 }

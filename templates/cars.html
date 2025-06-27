@@ -1,5 +1,6 @@
 {{ define "cars.html" }}
 <h2 class="mb-4">Автомобили</h2>
+
 <form class="row mb-4" id="filterForm">
     <div class="col-md-4">
         <input type="text" class="form-control" placeholder="Марка или модель" name="query">
@@ -11,9 +12,11 @@
         <button type="submit" class="btn btn-outline-primary w-100">Фильтровать</button>
     </div>
 </form>
+
 <div id="car-list" class="row"></div>
+
 <script>
-    document.getElementById("filterForm").addEventListener("submit", function(e) {
+    document.getElementById("filterForm").addEventListener("submit", function (e) {
         e.preventDefault();
         loadCars();
     });
@@ -33,28 +36,32 @@
             }
         });
 
+        const container = document.getElementById('car-list');
+        container.innerHTML = '';
+
         if (!res.ok) {
-            document.getElementById('car-list').innerHTML = `<div class="col-12 text-danger">Ошибка загрузки данных</div>`;
+            container.innerHTML = `<div class="col-12 text-danger">Ошибка загрузки данных</div>`;
             return;
         }
 
         const cars = await res.json();
-        const container = document.getElementById('car-list');
-        container.innerHTML = '';
 
         cars.forEach(car => {
             const col = document.createElement('div');
             col.className = 'col-md-4 mb-4';
             col.innerHTML = `
-                <div class="card h-100">
-                    <img src="${car.image_url}" class="card-img-top" alt="${car.model}" style="height:200px; object-fit:cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">${car.brand} ${car.model}</h5>
-                        <p class="card-text">${car.description}</p>
-                        <p><strong>Год:</strong> ${car.year}</p>
-                        <p><strong>Цена:</strong> $${car.price}</p>
+                <a href="/cars/${car.id}" style="text-decoration: none; color: inherit;">
+                    <div class="card h-100 car-card">
+                        <img src="${car.image_url}" class="card-img-top" alt="${car.model}" style="height:200px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">${car.brand} ${car.model}</h5>
+                            <p class="card-text">${car.description}</p>
+                            <p><strong>Год:</strong> ${car.year}</p>
+                            <p><strong>Цена:</strong> $${car.price}</p>
+                            ${car.phone ? `<p><strong>Телефон:</strong> ${car.phone}</p>` : ''}
+                        </div>
                     </div>
-                </div>
+                </a>
             `;
             container.appendChild(col);
         });

@@ -15,7 +15,7 @@ var DB *gorm.DB
 
 func ConnectDB() {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+		"host=%s user=%s password=%s dbname=%s port=5432 sslmode=require",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),

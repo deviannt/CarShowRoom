@@ -25,6 +25,10 @@
         <label>Ссылка на изображение</label>
         <input type="url" class="form-control" name="image_url">
     </div>
+    <div class="mb-3">
+        <label>Номер телефона</label>
+        <input type="tel" class="form-control" name="phone" placeholder="+7 (___) ___-__-__" required>
+    </div>
     <button type="submit" class="btn btn-primary">Добавить</button>
 </form>
 
@@ -39,7 +43,8 @@
             year: parseInt(form.year.value),
             price: parseFloat(form.price.value),
             description: form.description.value,
-            image_url: form.image_url.value
+            image_url: form.image_url.value,
+            phone: form.phone.value
         };
 
         const res = await fetch("/api/cars", {

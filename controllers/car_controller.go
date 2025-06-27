@@ -4,6 +4,7 @@ import (
 	"autosalon/config"
 	"autosalon/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,7 +52,9 @@ func CreateCar(c *gin.Context) {
 		Price       float64 `json:"price"`
 		Description string  `json:"description"`
 		ImageURL    string  `json:"image_url"`
+		Phone       string  `json:"phone"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные"})
 		return
@@ -66,6 +69,7 @@ func CreateCar(c *gin.Context) {
 		Price:       input.Price,
 		Description: input.Description,
 		ImageURL:    input.ImageURL,
+		Phone:       input.Phone,
 		UserID:      userID,
 		Status:      "pending",
 	}
@@ -156,4 +160,25 @@ func ApproveCar(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Авто одобрено"})
+}
+
+func CarDetailPage(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Неверный ID")
+		return
+	}
+
+	var car models.Car
+	if err := config.DB.First(&car, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Авто не найдено")
+		return
+	}
+
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"Title":   "Детали автомобиля",
+		"Content": "car_detail.html",
+		"Car":     car,
+	})
 }

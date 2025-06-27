@@ -50,6 +50,8 @@ func SetupRouter() *gin.Engine {
 	r.GET("/admin/posts", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminPostsPage)
 	r.GET("/admin/cars", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), controllers.ShowAdminCarsPage)
 
+	r.GET("/cars/:id", controllers.CarDetailPage)
+
 	// ✅ REST API
 	api := r.Group("/api")
 	{

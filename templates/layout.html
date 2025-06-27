@@ -1,3 +1,4 @@
+{{ define "layout.html" }}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -79,6 +80,7 @@
     {{ else if eq .Content "car_edit.html" }}{{ template "car_edit.html" . }}
     {{ else if eq .Content "mycars.html" }}{{ template "mycars.html" . }}
     {{ else if eq .Content "support.html" }}{{ template "support.html" . }}
+    {{ else if eq .Content "car_detail.html" }}{{ template "car_detail.html" . }}
     {{ end }}
 </div>
 
@@ -121,3 +123,4 @@
 </script>
 </body>
 </html>
+{{ end }}
