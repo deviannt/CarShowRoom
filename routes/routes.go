@@ -10,14 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed templates/*.html
+//go:embed ../templates/*.html
 var templatesFS embed.FS
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	// 🧩 HTML шаблоны и статика
-	tmpl := template.Must(template.ParseFS(templatesFS, "templates/*.html"))
+	tmpl := template.Must(template.ParseFS(templatesFS, "../templates/*.html"))
 	r.SetHTMLTemplate(tmpl)
 	r.Static("/static", "./static")
 
