@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed ../templates/*.html
+//go:embed templates/*.html
 var templatesFS embed.FS
 
 func SetupRouter() *gin.Engine {
@@ -93,19 +93,16 @@ func SetupRouter() *gin.Engine {
 			admin := secured.Group("/")
 			admin.Use(middleware.RoleMiddleware("admin"))
 			{
-				// ⚙️ Модерация автомобилей
 				admin.GET("/admin/cars/pending", controllers.ListPendingCars)
 				admin.PUT("/admin/cars/:id/approve", controllers.ApproveCar)
 
 				admin.PUT("/cars/:id", controllers.UpdateCar)
 				admin.DELETE("/cars/:id", controllers.DeleteCar)
 
-				// 👥 Пользователи
 				admin.GET("/users", controllers.ListUsers)
 				admin.PUT("/users/:id/block", controllers.BlockUser)
 				admin.PUT("/users/:id/username", controllers.UpdateUsername)
 
-				// ✍️ Посты
 				admin.GET("/posts", controllers.ListUnapprovedPosts)
 				admin.PUT("/posts/:id", controllers.UpdatePost)
 				admin.PUT("/posts/:id/approve", controllers.ApprovePost)
